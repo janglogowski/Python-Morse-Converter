@@ -1,9 +1,8 @@
 import pandas as pd
 
-class MorseLogic():
+class MorseLogic:
     def __init__(self):
-        super().__init__()
-        self.alphabet_dict = self.create_alphabet_dict()
+        self.alphabet = self.create_alphabet_dict()
 
 #--------READING DATA--------# 
     def create_alphabet_dict(self):
@@ -13,13 +12,11 @@ class MorseLogic():
         return alphabet_dict
 
 #--------ENCODING DATA--------# 
-    def generate_phonetic(self):
-        try:
-            user_word = input("enter a word: ").lower()
-            word_encoded = [self.alphabet_dict[letter] for letter in user_word]
-        except KeyError:
-            print("Sorry, only letters in the alphabet please.")
-            self.generate_phonetic()
-        else:
-            print(word_encoded)
-            return word_encoded
+    def generate_phonetic(self, input):
+        encoded = []
+        for letter in input.lower():
+            if letter in self.alphabet:
+                encoded.append(self.alphabet[letter])
+            else:
+                encoded.append(letter)
+        return encoded
