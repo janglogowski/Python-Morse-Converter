@@ -1,14 +1,20 @@
+#------------------------IMPORTS------------------------# 
 from tkinter import *
 from PIL import Image, ImageTk
 from morse_logic import *
+from playsound import playsound
+import os
+import time
 
-#--------CONSTANTS--------# 
+#-----------------------CONSTANTS-----------------------# 
 BACKGROUND = '#242424'
 BUTTON_BACKGROUND = '#828282'
 FONT_NAME = 'Chicago'
 WINDOW_SIZE = "800x670"
+LONG_SOUND = os.path.dirname(__file__) + '/long.mp3'
+SHORT_SOUND = os.path.dirname(__file__) + '/short.mp3'
 
-#--------CREATING GUI CLASS--------# 
+#------------------CREATING GUI CLASS-------------------# 
 class Gui(Tk):
     def __init__(self):
         super().__init__()
@@ -28,17 +34,15 @@ class Gui(Tk):
 
         self.main_frame()
 
-#--------CLEANING FRAMES--------# 
-    def frame_clear(self):
-        for frame in self.frames.values():
-            frame.grid_forget()
-        self.current_frame = None
-
-#--------SWITCHING BETWEEN FRAMES--------# 
     def show_frame(self,frame_name):
         self.frame_clear()
         self.frames[frame_name].grid(column=0, row=0, sticky="nsew")
         self.current_frame = frame_name
+
+    def frame_clear(self):
+        for frame in self.frames.values():
+            frame.grid_forget()
+        self.current_frame = None
 
 #--------MAIN GUI FRAME--------# 
     def main_frame(self):
@@ -114,7 +118,7 @@ class Gui(Tk):
                                width=32,
                                bg=BUTTON_BACKGROUND,
                                fg='white',
-                               command=self.main_frame)
+                               command=self.play_sound)
         play_button.grid(column=1,row=9,columnspan=7,pady=(0,7),padx=(0,36))
 
         download_button = Button(self.frames['encode'],
@@ -198,6 +202,19 @@ class Gui(Tk):
         if pressed_key in self.btn_dict: 
             self.btn_dict[pressed_key].config(bg='#bcbcbc')
             self.after(100, lambda: self.btn_dict[pressed_key].config(bg=BUTTON_BACKGROUND))
+
+
+#--------PLAYING SOUND--------#
+    def play_sound(self):
+        codes = self.text_output.get('1.0', END).strip()
+        for code in codes:
+            if code == '•':
+                playsound(SHORT_SOUND)
+            elif code == '−':
+                playsound(LONG_SOUND)
+            elif code == ' ':
+                time.sleep(1)
+            time.sleep(0.1)
             
 #--------ENCODED OUTPUT--------# 
     def encoded_output(self,u_input):
