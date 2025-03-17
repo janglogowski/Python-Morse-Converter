@@ -1,4 +1,5 @@
-dict = {'a':'b'}
+from gui import MorseApp
 
-if 'a' in dict:
-    print(dict['a'])
+if __name__ == "__main__":
+    morse_app = MorseApp()
+    morse_app.mainloop()

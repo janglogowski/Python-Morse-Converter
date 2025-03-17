@@ -2,56 +2,39 @@
 from tkinter import *
 from PIL import Image, ImageTk
 from morse_logic import *
-from playsound import playsound
-import os
-import time
+from config import *
+from audio import play_sound
+from morse_logic import *
 
-#-----------------------CONSTANTS-----------------------# 
-BACKGROUND = '#242424'
-BUTTON_BACKGROUND = '#828282'
-FONT_NAME = 'Chicago'
-WINDOW_SIZE = "800x670"
-LONG_SOUND = os.path.dirname(__file__) + '/long.mp3'
-SHORT_SOUND = os.path.dirname(__file__) + '/short.mp3'
-
-#------------------CREATING GUI CLASS-------------------# 
-class Gui(Tk):
+#------------------MORSE APP-------------------# 
+class MorseApp(Tk):
     def __init__(self):
         super().__init__()
         self.title("Morse Code Converter App")
         self.config(bg=BACKGROUND)
         self.geometry(WINDOW_SIZE)
 
-        self.frames = {
-            'main': Frame(self,bg=BACKGROUND),
-            'encode': Frame(self,bg=BACKGROUND),
-            'decode': Frame(self,bg=BACKGROUND),
-            'learn': Frame(self,bg=BACKGROUND)
-        }
+        self.frames = {}
+        for frame_class in (MainFrame, EncodeFrame, DecodeFrame, LearnFrame):
+            frame = frame_class(self)
+            self.frames[frame_class] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
 
-        self.current_frame = None
-        self.morse_logic = MorseLogic()
+        self.show_frame(MainFrame)
 
-        self.main_frame()
-
-    def show_frame(self,frame_name):
-        self.frame_clear()
-        self.frames[frame_name].grid(column=0, row=0, sticky="nsew")
-        self.current_frame = frame_name
-
-    def frame_clear(self):
-        for frame in self.frames.values():
-            frame.grid_forget()
-        self.current_frame = None
+    def show_frame(self,frame_class):
+        frame = self.frames[frame_class]
+        frame.tkraise()
 
 #--------MAIN GUI FRAME--------# 
-    def main_frame(self):
-        self.show_frame('main')
+class MainFrame(Frame):
+    def __init__(self, parent):
+        super().__init__(parent, bg=BACKGROUND)
+        self.create_widgets()
 
-        for i in range(3):
-            self.frames['main'].grid_columnconfigure(i, weight=1)  
-
-        app_name = Label(self.frames['main'],
+#--------CREATING WIDGETS--------# 
+    def create_widgets(self):
+        app_name = Label(self,
                          text='Morse Code Converter',
                          font=(FONT_NAME,51,'italic','bold'),
                          bg=BACKGROUND,
@@ -59,128 +42,79 @@ class Gui(Tk):
                          justify='left')
         app_name.grid(column=0,row=0,padx=30,pady=(20,0),columnspan=3,sticky='nsew') 
 
-        img = Image.open('machine.jpg')
+        img = Image.open(PHOTO)
         img = img.resize((750,300))
         self.photo = ImageTk.PhotoImage(img)
-        image_label = Label(self.frames['main'], image=self.photo,bg=BACKGROUND)
+        image_label = Label(self, image=self.photo,bg=BACKGROUND)
         image_label.grid(column=1,row=1,pady=10)
 
-        label = Label(self.frames['main'],text='Welcome to Morse Code Converter! Choose one:',
-                           font=(FONT_NAME,20),
-                           bg=BACKGROUND,
-                           fg='white',
-                           justify='left',
-                           width=40)
+        label = Label(self,
+                      text='Welcome to Morse Code Converter! Choose one:',
+                      font=(FONT_NAME,20),
+                      bg=BACKGROUND,
+                      fg='white',
+                      justify='left',
+                      width=40)
         label.grid(column=0,row=2,padx=30,pady=20,columnspan=3)
 
-        encode_button = Button(self.frames['main'],
+        encode_button = Button(self,
                                text="Encode",
                                font=(FONT_NAME,15),
                                width=40,
                                bg=BUTTON_BACKGROUND,
                                fg='white',
-                               command=self.encode_frame)
+                               command=lambda: self.master.show_frame(EncodeFrame))
         encode_button.grid(column=1,row=3)
 
-        decode_button = Button(self.frames['main'],
+        decode_button = Button(self,
                                text="Decode",
                                font=(FONT_NAME,15),
                                width=40,
                                bg=BUTTON_BACKGROUND,
                                fg='white',
-                               command=self.decode_frame)
+                               command= lambda: self.master.show_frame(DecodeFrame))
         decode_button.grid(column=1,row=4,pady=7)
 
-        learn_button = Button(self.frames['main'],
+        learn_button = Button(self,
                               text="Learn",
                               font=(FONT_NAME,15),
                               width=40,
                               bg=BUTTON_BACKGROUND,
                               fg='white',
-                              command=self.learn_frame)
+                              command=lambda: self.master.show_frame(LearnFrame))
         learn_button.grid(column=1,row=5)
 
 #--------ENCODE GUI FRAME--------# 
-    def encode_frame(self):
-        self.show_frame('encode')
-        self.input_text = "Enter a message to encode."
+class EncodeFrame(Frame):
+    def __init__(self, parent):
+        super().__init__(parent, bg=BACKGROUND)
+        self.input_text = 'Type in text to encode.'
+
+        self.morse_logic = MorseLogic()
 
         for i in range(0,15):  
-            self.frames['encode'].grid_columnconfigure(i, weight=1,minsize=30)  
+            self.grid_columnconfigure(i, weight=1,minsize=30)  
             if i < 10:  
-                self.frames['encode'].grid_rowconfigure(i, weight=1,minsize=15)
+                self.grid_rowconfigure(i, weight=1,minsize=15)
 
         self.create_keyboard()
-
-        play_button = Button(self.frames['encode'],
-                               text="Play Audio",
-                               font=(FONT_NAME,15),
-                               width=32,
-                               bg=BUTTON_BACKGROUND,
-                               fg='white',
-                               command=self.play_sound)
-        play_button.grid(column=1,row=9,columnspan=7,pady=(0,7),padx=(0,36))
-
-        download_button = Button(self.frames['encode'],
-                               text="Download Audio",
-                               font=(FONT_NAME,15),
-                               width=32,
-                               bg=BUTTON_BACKGROUND,
-                               fg='white',
-                               command=self.main_frame)
-        download_button.grid(column=7,row=9,columnspan=7,pady=(0,7),padx=(41,0))
-
-        back_button = Button(self.frames['encode'],
-                               text="Back",
-                               font=(FONT_NAME,15),
-                               width=67,
-                               bg=BUTTON_BACKGROUND,
-                               fg='white',
-                               command=self.main_frame)
-        back_button.grid(column=1,row=10,columnspan=13)
-
-        self.user_input = Text(self.frames['encode'],
-                          font=(FONT_NAME,12),
-                          wrap='word',
-                          width=82,
-                          height=9)
-        self.user_input.insert(END, self.input_text)
-        self.user_input.grid(column=1,row=5,columnspan=13)
-
-        self.text_output = Text(self.frames['encode'],
-                          font=(FONT_NAME,12),
-                          wrap='word',
-                          width=82,
-                          height=9)
-        self.text_output.grid(column=1,row=7,columnspan=13)
+        self.create_widgets()
 
         self.monitor_user_input()
         self.user_input.bind("<KeyPress>", self.on_key_press)
 
-#--------MONITORING INPUT--------#
-    def monitor_user_input(self):
-        if self.current_frame == 'encode' and hasattr(self,'user_input'):
-            text_to_encode = self.user_input.get('1.0',END).strip()
-
-            if text_to_encode != self.input_text:
-                self.input_text = text_to_encode
-                
-                encoded_text = self.morse_logic.generate_phonetic(text_to_encode)
-                self.encoded_output(encoded_text)
-
-        self.after(100,self.monitor_user_input)
-
-#--------CREATING ENCODE KEYBOARD--------#
+#--------CREATING ENCODE FRAME KEYBOARD--------#
     def create_keyboard(self):
-        self.btn_dict = {}
         alphabet_dict = self.morse_logic.alphabet
+
+        self.btn_dict = {}
         self.letters = list(alphabet_dict.keys())
         self.codes = list(alphabet_dict.values())
 
         column_n,row_n = 1,1
 
         for i in range(len(self.letters)):
-            alphabet_button = Button(self.frames['encode'],
+            alphabet_button = Button(self,
                                      text=f'{self.letters[i].upper()}\n{self.codes[i]}',
                                      font=(FONT_NAME,13),
                                      width=5,
@@ -195,6 +129,53 @@ class Gui(Tk):
             
             self.btn_dict[self.letters[i].lower()] = alphabet_button
 
+#--------CREATING WIDGETS--------# 
+    def create_widgets(self):
+        play_button = Button(self,
+                                text="Play Audio",
+                                font=(FONT_NAME,15),
+                                width=67,
+                                bg=BUTTON_BACKGROUND,
+                                fg='white',
+                                command=self.play_sound)
+        play_button.grid(column=1,row=9,columnspan=13,pady=(0,7))
+
+        back_button = Button(self,
+                                text="Back",
+                                font=(FONT_NAME,15),
+                                width=67,
+                                bg=BUTTON_BACKGROUND,
+                                fg='white',
+                                command=lambda: self.master.show_frame(MainFrame))
+        back_button.grid(column=1,row=10,columnspan=13)
+
+        self.user_input = Text(self,
+                            font=(FONT_NAME,12),
+                            wrap='word',
+                            width=82,
+                            height=9)
+        self.user_input.insert(END, self.input_text)
+        self.user_input.grid(column=1,row=5,columnspan=13)
+
+        self.text_output = Text(self,
+                            font=(FONT_NAME,12),
+                            wrap='word',
+                            width=82,
+                            height=9)
+        self.text_output.grid(column=1,row=7,columnspan=13)
+
+#--------MONITORING INPUT--------#
+    def monitor_user_input(self):
+        text_to_encode = self.user_input.get('1.0',END).strip()
+
+        if text_to_encode != self.input_text:
+            self.input_text = text_to_encode
+                
+            encoded_text = self.morse_logic.generate_phonetic(text_to_encode)
+            self.encoded_output(encoded_text)
+
+        self.after(100,self.monitor_user_input)
+
 #--------KEYBOARD INPUT HANDLING--------# 
     def on_key_press(self, event):
         pressed_key = event.char.lower() 
@@ -203,18 +184,10 @@ class Gui(Tk):
             self.btn_dict[pressed_key].config(bg='#bcbcbc')
             self.after(100, lambda: self.btn_dict[pressed_key].config(bg=BUTTON_BACKGROUND))
 
-
 #--------PLAYING SOUND--------#
     def play_sound(self):
         codes = self.text_output.get('1.0', END).strip()
-        for code in codes:
-            if code == '•':
-                playsound(SHORT_SOUND)
-            elif code == '−':
-                playsound(LONG_SOUND)
-            elif code == ' ':
-                time.sleep(1)
-            time.sleep(0.1)
+        play_sound(codes)
             
 #--------ENCODED OUTPUT--------# 
     def encoded_output(self,u_input):
@@ -222,13 +195,9 @@ class Gui(Tk):
         self.text_output.insert(END, u_input)
 
 #--------DECODE GUI FRAME--------# 
-    def decode_frame(self):
-        pass
+class DecodeFrame(Frame):
+    pass
 
 #--------LEARN MODE GUI FRAME--------# 
-    def learn_frame(self):
-        pass
-
-if __name__ == "__main__":
-    gui = Gui()
-    gui.mainloop()
+class LearnFrame(Frame):
+    pass
