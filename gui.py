@@ -1,12 +1,11 @@
-#------------------------IMPORTS------------------------# 
+#---------------------------IMPORTS----------------------------# 
 from tkinter import *
 from PIL import Image, ImageTk
-from morse_logic import *
+from morse_logic import MorseLogic
 from config import *
-from audio import play_sound
-from morse_logic import *
+from audio import play_sound, download_sound
 
-#------------------MORSE APP-------------------# 
+#--------------------------MORSE APP---------------------------# 
 class MorseApp(Tk):
     def __init__(self):
         super().__init__()
@@ -26,13 +25,12 @@ class MorseApp(Tk):
         frame = self.frames[frame_class]
         frame.tkraise()
 
-#--------MAIN GUI FRAME--------# 
+#------------------------MAIN GUI FRAME------------------------# 
 class MainFrame(Frame):
     def __init__(self, parent):
         super().__init__(parent, bg=BACKGROUND)
         self.create_widgets()
 
-#--------CREATING WIDGETS--------# 
     def create_widgets(self):
         app_name = Label(self,
                          text='Morse Code Converter',
@@ -57,39 +55,27 @@ class MainFrame(Frame):
                       width=40)
         label.grid(column=0,row=2,padx=30,pady=20,columnspan=3)
 
-        encode_button = Button(self,
-                               text="Encode",
-                               font=(FONT_NAME,15),
-                               width=40,
-                               bg=BUTTON_BACKGROUND,
-                               fg='white',
-                               command=lambda: self.master.show_frame(EncodeFrame))
-        encode_button.grid(column=1,row=3)
+    def create_buttons(self):
+        buttons = [('Encode', EncodeFrame),
+                   ('Decode', DecodeFrame),
+                   ('Learn',LearnFrame)]
+        i = 0
+        for (text, frame) in buttons:
+            button = Button(self,
+                            text=text,
+                            font=(FONT_NAME,15),
+                            width=40,
+                            bg=BUTTON_BACKGROUND,
+                            fg='white',
+                            command=lambda: self.master.show_frame(frame))
+            button.grid(column=1, row=3+i, pady=7 if i else 0)
+            i += 1
 
-        decode_button = Button(self,
-                               text="Decode",
-                               font=(FONT_NAME,15),
-                               width=40,
-                               bg=BUTTON_BACKGROUND,
-                               fg='white',
-                               command= lambda: self.master.show_frame(DecodeFrame))
-        decode_button.grid(column=1,row=4,pady=7)
-
-        learn_button = Button(self,
-                              text="Learn",
-                              font=(FONT_NAME,15),
-                              width=40,
-                              bg=BUTTON_BACKGROUND,
-                              fg='white',
-                              command=lambda: self.master.show_frame(LearnFrame))
-        learn_button.grid(column=1,row=5)
-
-#--------ENCODE GUI FRAME--------# 
+#-----------------------ENCODE GUI FRAME-----------------------# 
 class EncodeFrame(Frame):
     def __init__(self, parent):
         super().__init__(parent, bg=BACKGROUND)
         self.input_text = 'Type in text to encode.'
-
         self.morse_logic = MorseLogic()
 
         for i in range(0,15):  
@@ -99,11 +85,9 @@ class EncodeFrame(Frame):
 
         self.create_keyboard()
         self.create_widgets()
-
         self.monitor_user_input()
         self.user_input.bind("<KeyPress>", self.on_key_press)
 
-#--------CREATING ENCODE FRAME KEYBOARD--------#
     def create_keyboard(self):
         alphabet_dict = self.morse_logic.alphabet
 
@@ -129,42 +113,49 @@ class EncodeFrame(Frame):
             
             self.btn_dict[self.letters[i].lower()] = alphabet_button
 
-#--------CREATING WIDGETS--------# 
     def create_widgets(self):
         play_button = Button(self,
-                                text="Play Audio",
-                                font=(FONT_NAME,15),
-                                width=67,
-                                bg=BUTTON_BACKGROUND,
-                                fg='white',
-                                command=self.play_sound)
-        play_button.grid(column=1,row=9,columnspan=13,pady=(0,7))
+                             text="Play Audio",
+                             font=(FONT_NAME,15),
+                             width=32,
+                             bg=BUTTON_BACKGROUND,
+                             fg='white',
+                             command=self.play_audio)
+        play_button.grid(column=1,row=9,columnspan=7,pady=(0,7),padx=(0,36))
+
+        download_button = Button(self,
+                                 text="Download Audio",
+                                 font=(FONT_NAME,15),
+                                 width=32,
+                                 bg=BUTTON_BACKGROUND,
+                                 fg='white',
+                                 command=self.download_audio)
+        download_button.grid(column=7,row=9,columnspan=7,pady=(0,7),padx=(41,0))       
 
         back_button = Button(self,
-                                text="Back",
-                                font=(FONT_NAME,15),
-                                width=67,
-                                bg=BUTTON_BACKGROUND,
-                                fg='white',
-                                command=lambda: self.master.show_frame(MainFrame))
+                             text="Back",
+                             font=(FONT_NAME,15),
+                             width=67,
+                             bg=BUTTON_BACKGROUND,
+                             fg='white',
+                             command=lambda: self.master.show_frame(MainFrame))
         back_button.grid(column=1,row=10,columnspan=13)
 
         self.user_input = Text(self,
-                            font=(FONT_NAME,12),
-                            wrap='word',
-                            width=82,
-                            height=9)
+                               font=(FONT_NAME,12),
+                               wrap='word',
+                               width=82,
+                               height=9)
         self.user_input.insert(END, self.input_text)
         self.user_input.grid(column=1,row=5,columnspan=13)
 
         self.text_output = Text(self,
-                            font=(FONT_NAME,12),
-                            wrap='word',
-                            width=82,
-                            height=9)
+                                font=(FONT_NAME,12),
+                                wrap='word',
+                                width=82,
+                                height=9)
         self.text_output.grid(column=1,row=7,columnspan=13)
 
-#--------MONITORING INPUT--------#
     def monitor_user_input(self):
         text_to_encode = self.user_input.get('1.0',END).strip()
 
@@ -176,7 +167,6 @@ class EncodeFrame(Frame):
 
         self.after(100,self.monitor_user_input)
 
-#--------KEYBOARD INPUT HANDLING--------# 
     def on_key_press(self, event):
         pressed_key = event.char.lower() 
 
@@ -184,17 +174,24 @@ class EncodeFrame(Frame):
             self.btn_dict[pressed_key].config(bg='#bcbcbc')
             self.after(100, lambda: self.btn_dict[pressed_key].config(bg=BUTTON_BACKGROUND))
 
-#--------PLAYING SOUND--------#
-    def play_sound(self):
-        codes = self.text_output.get('1.0', END).strip()
-        play_sound(codes)
+#-----------------------SOUND SETTINGS-------------------------# 
+    def play_audio(self):
+        text_to_audio = self.text_output.get('1.0', END).strip()
+        if text_to_audio:
+            play_sound(text_to_audio)
             
-#--------ENCODED OUTPUT--------# 
     def encoded_output(self,u_input):
         self.text_output.delete(1.0, END)
         self.text_output.insert(END, u_input)
 
-#--------DECODE GUI FRAME--------# 
+    def download_audio(self):
+        text_input = self.user_input.get('1.0', END).strip()
+        text_to_audio = self.text_output.get('1.0', END).strip()
+
+        if text_input:
+            download_sound(text_to_audio, text_input)
+
+#-----------------------DECODE GUI FRAME-----------------------# 
 class DecodeFrame(Frame):
     pass
 
