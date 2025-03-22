@@ -40,7 +40,7 @@ def play_sound(input):
         os.remove(temp_path)
 
 def download_sound(input,file_name):
-    if not input.strip():
+    if not input:
         return
     
     file_name = clear_filename(file_name[:20])

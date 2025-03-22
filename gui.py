@@ -30,6 +30,7 @@ class MainFrame(Frame):
     def __init__(self, parent):
         super().__init__(parent, bg=BACKGROUND)
         self.create_widgets()
+        self.create_buttons()
 
     def create_widgets(self):
         app_name = Label(self,
@@ -40,7 +41,7 @@ class MainFrame(Frame):
                          justify='left')
         app_name.grid(column=0,row=0,padx=30,pady=(20,0),columnspan=3,sticky='nsew') 
 
-        img = Image.open(PHOTO)
+        img = Image.open(PHOTO_MAIN)
         img = img.resize((750,300))
         self.photo = ImageTk.PhotoImage(img)
         image_label = Label(self, image=self.photo,bg=BACKGROUND)
@@ -59,17 +60,16 @@ class MainFrame(Frame):
         buttons = [('Encode', EncodeFrame),
                    ('Decode', DecodeFrame),
                    ('Learn',LearnFrame)]
-        i = 0
-        for (text, frame) in buttons:
+        
+        for i, (text, frame) in enumerate(buttons):
             button = Button(self,
                             text=text,
                             font=(FONT_NAME,15),
                             width=40,
                             bg=BUTTON_BACKGROUND,
                             fg='white',
-                            command=lambda: self.master.show_frame(frame))
-            button.grid(column=1, row=3+i, pady=7 if i else 0)
-            i += 1
+                            command=lambda f=frame: self.master.show_frame(f))
+            button.grid(column=1, row=3+i, pady=3)
 
 #-----------------------ENCODE GUI FRAME-----------------------# 
 class EncodeFrame(Frame):
@@ -83,8 +83,8 @@ class EncodeFrame(Frame):
             if i < 10:  
                 self.grid_rowconfigure(i, weight=1,minsize=15)
 
-        self.create_keyboard()
         self.create_widgets()
+        self.create_keyboard()
         self.monitor_user_input()
         self.user_input.bind("<KeyPress>", self.on_key_press)
 
@@ -103,7 +103,9 @@ class EncodeFrame(Frame):
                                      font=(FONT_NAME,13),
                                      width=5,
                                      bg=BUTTON_BACKGROUND,
-                                     fg='white')
+                                     fg='white',
+                                     activebackground='#bcbcbc',
+                                     activeforeground='white')
             alphabet_button.grid(column=column_n, row=row_n, sticky='nsew',pady=1,padx=1)
             column_n += 1
 
@@ -197,4 +199,83 @@ class DecodeFrame(Frame):
 
 #--------LEARN MODE GUI FRAME--------# 
 class LearnFrame(Frame):
-    pass
+    def __init__(self, parent):
+        super().__init__(parent, bg=BACKGROUND)
+
+        for i in range(0,5):  
+            self.grid_columnconfigure(i, weight=1)  
+
+        with open("highest_score.txt",'w+') as highest_score:
+            self.highscore = highest_score.read()
+            if self.highscore == '':
+                self.highscore = 0
+        self.score = 0
+        self.display_text = ''
+        self.display_text_label = ''
+
+        self.create_scoreboard()
+        self.create_widgets()
+
+    def create_scoreboard(self):
+        self.score_label = Label(self, 
+                      text=f'Score: {self.score}',
+                      font=(FONT_NAME,20,'bold'),
+                      bg=BACKGROUND,
+                      fg='white')
+        self.score_label.grid(column=1,row=0,pady=(20,0),sticky='w',padx=20)
+
+        self.highscore_label = Label(self, 
+                      text=f'High Score: {self.highscore}',
+                      font=(FONT_NAME,20,'bold'),
+                      bg=BACKGROUND,
+                      fg='white')
+        self.highscore_label.grid(column=3,row=0,pady=(20,0),sticky='e',padx=20)
+
+    def create_widgets(self):
+        img = Image.open(PHOTO_LEARN)
+        img = img.resize((750,300))
+        self.photo = ImageTk.PhotoImage(img)
+        image_label = Label(self, image=self.photo,bg=BACKGROUND)
+        image_label.grid(column=1,row=1,pady=(10,15),padx=10,columnspan=3)
+
+        self.display_label = Label(self,
+                                   text=self.display_text_label,
+                                   font=(FONT_NAME,20,'italic'),
+                                   bg=BACKGROUND,
+                                   fg='white')
+        self.display_label.grid(column=1,row=2,pady=(0,10),sticky='nsew')
+
+        self.display = Label(self,
+                             text=self.display_text,
+                             bg='#dcdcdc',
+                             font=(FONT_NAME,25,'bold'),
+                             width=9)
+        self.display.grid(column=1,row=2,columnspan=3)
+
+        self.input = Text(self,
+                          font=(FONT_NAME,25),
+                          width=10,
+                          height=1)
+        self.input.grid(column=1,row=3,columnspan=3,pady=(25,5))
+
+        guess_button = Button(self,
+                              text="Guess",
+                              font=(FONT_NAME,17),
+                              width=16,
+                              bg=BUTTON_BACKGROUND,
+                              fg='white',
+                              command=lambda: self.master.show_frame(MainFrame))
+        guess_button.grid(column=1,row=4,columnspan=3,pady=(5,0))
+
+        back_button = Button(self,
+                              text="Back",
+                              font=(FONT_NAME,15),
+                              width=40,
+                              bg=BUTTON_BACKGROUND,
+                              fg='white',
+                              command=lambda: self.master.show_frame(MainFrame))
+        back_button.grid(column=1,row=5,columnspan=3,pady=(50,0))
+
+if __name__ == "__main__":
+    morse_app = MorseApp()
+    morse_app.mainloop()
