@@ -5,28 +5,6 @@ from morse_logic import MorseLogic
 from config import *
 from audio import play_sound, download_sound
 import random
-import time
-
-#--------------------------MORSE APP---------------------------# 
-class MorseApp(Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("Morse Code Converter App")
-        self.config(bg=BACKGROUND)
-        self.geometry(WINDOW_SIZE)
-
-        self.frames = {}
-        for frame_class in (MainFrame, EncodeFrame, DecodeFrame, LearnFrame):
-            frame = frame_class(self)
-            self.frames[frame_class] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
-
-
-        self.show_frame(MainFrame)
-
-    def show_frame(self,frame_class):
-        frame = self.frames[frame_class]
-        frame.tkraise()
 
 #------------------------MAIN GUI FRAME------------------------# 
 class MainFrame(Frame):
@@ -60,9 +38,8 @@ class MainFrame(Frame):
         label.grid(column=0,row=2,padx=30,pady=20,columnspan=3)
 
     def create_main_buttons(self):
-        buttons = [('Encode', EncodeFrame),
-                   ('Decode', DecodeFrame),
-                   ('Learn',LearnFrame)]
+        buttons = [('Encode Mode', EncodeFrame),
+                   ('Learn Mode',LearnFrame)]
         
         for i, (text, frame) in enumerate(buttons):
             button = Button(self,
@@ -108,7 +85,8 @@ class EncodeFrame(Frame):
                                      bg=BUTTON_BACKGROUND,
                                      fg='white',
                                      activebackground='#bcbcbc',
-                                     activeforeground='white')
+                                     activeforeground='white',
+                                     command=lambda letter=self.letters[i]: self.btn_insert(letter))
             alphabet_button.grid(column=column_n, row=row_n, sticky='nsew',pady=1,padx=1)
             column_n += 1
 
@@ -179,6 +157,9 @@ class EncodeFrame(Frame):
             self.btn_dict[pressed_key].config(bg='#bcbcbc')
             self.after(100, lambda: self.btn_dict[pressed_key].config(bg=BUTTON_BACKGROUND))
 
+    def btn_insert(self,letter):
+        self.user_input.insert(END, letter)
+
 #-----------------------SOUND SETTINGS-------------------------# 
     def play_audio(self):
         text_to_audio = self.text_output.get('1.0', END).strip()
@@ -203,6 +184,7 @@ class LearnFrame(Frame):
 
         self.morse_logic = MorseLogic()
         self.alphabet = self.morse_logic.alphabet
+
         self.first_choice = True
         self.random_letter = ''
         self.score = 0
@@ -212,7 +194,7 @@ class LearnFrame(Frame):
             self.grid_columnconfigure(i, weight=1)  
 
         self.create_scoreboard()
-        self.create_widgets()
+        self.create_learn_widgets()
         self.choose_type()
 
     def create_scoreboard(self):
@@ -230,7 +212,7 @@ class LearnFrame(Frame):
                       fg='white')
         self.highscore_label.grid(column=3,row=0,pady=(20,0),sticky='e',padx=20)
 
-    def create_widgets(self):
+    def create_learn_widgets(self):
         img = Image.open(PHOTO_LEARN)
         img = img.resize((750,300))
         self.photo = ImageTk.PhotoImage(img)
@@ -369,12 +351,7 @@ class LearnFrame(Frame):
         self.first_choice = True
         self.display.config(text='')
         self.user_answer.delete('1.0', END)
+
+        if hasattr(self, 'play_btn'):
+            self.play_btn.grid_forget()
         self.choose_type()
-
-#-----------------------DECODE GUI FRAME-----------------------# 
-class DecodeFrame(Frame):
-    pass
-
-if __name__ == "__main__":
-    morse_app = MorseApp()
-    morse_app.mainloop()

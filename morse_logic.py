@@ -18,5 +18,3 @@ class MorseLogic:
             else:
                 encoded.append(letter)
         return encoded
-    
-    
