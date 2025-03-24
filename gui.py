@@ -32,10 +32,10 @@ class MorseApp(Tk):
 class MainFrame(Frame):
     def __init__(self, parent):
         super().__init__(parent, bg=BACKGROUND)
-        self.create_widgets()
-        self.create_buttons()
+        self.create_main_widgets()
+        self.create_main_buttons()
 
-    def create_widgets(self):
+    def create_main_widgets(self):
         app_name = Label(self,
                          text='Morse Code Converter',
                          font=(FONT_NAME,51,'italic','bold'),
@@ -59,7 +59,7 @@ class MainFrame(Frame):
                       width=40)
         label.grid(column=0,row=2,padx=30,pady=20,columnspan=3)
 
-    def create_buttons(self):
+    def create_main_buttons(self):
         buttons = [('Encode', EncodeFrame),
                    ('Decode', DecodeFrame),
                    ('Learn',LearnFrame)]
@@ -86,10 +86,10 @@ class EncodeFrame(Frame):
             if i < 10:  
                 self.grid_rowconfigure(i, weight=1,minsize=15)
 
-        self.create_widgets()
+        self.create_encode_widgets()
         self.create_keyboard()
         self.monitor_user_input()
-        self.user_input.bind("<KeyPress>", self.on_key_press)
+        self.user_input.bind("<KeyPress>", self.on_key_press_event)
 
     def create_keyboard(self):
         alphabet_dict = self.morse_logic.alphabet
@@ -118,7 +118,7 @@ class EncodeFrame(Frame):
             
             self.btn_dict[self.letters[i].lower()] = alphabet_button
 
-    def create_widgets(self):
+    def create_encode_widgets(self):
         play_button = Button(self,
                              text="Play Audio",
                              font=(FONT_NAME,15),
@@ -172,7 +172,7 @@ class EncodeFrame(Frame):
 
         self.after(100,self.monitor_user_input)
 
-    def on_key_press(self, event):
+    def on_key_press_event(self, event):
         pressed_key = event.char.lower() 
 
         if pressed_key in self.btn_dict: 
@@ -196,10 +196,6 @@ class EncodeFrame(Frame):
         if text_input:
             download_sound(text_to_audio, text_input)
 
-#-----------------------DECODE GUI FRAME-----------------------# 
-class DecodeFrame(Frame):
-    pass
-
 #--------LEARN MODE GUI FRAME--------# 
 class LearnFrame(Frame):
     def __init__(self, parent):
@@ -209,15 +205,11 @@ class LearnFrame(Frame):
         self.alphabet = self.morse_logic.alphabet
         self.first_choice = True
         self.random_letter = ''
+        self.score = 0
+        self.highscore = self.load_highscore()
 
         for i in range(0,5):  
             self.grid_columnconfigure(i, weight=1)  
-
-        with open('highest_score.txt','w+') as highest_score:
-            self.highscore = highest_score.read()
-            if self.highscore == '':
-                self.highscore = 0
-        self.score = 0
 
         self.create_scoreboard()
         self.create_widgets()
@@ -352,11 +344,24 @@ class LearnFrame(Frame):
             self.score += 1
             self.score_label.config(text=f'Score: {self.score}')
             if self.score > self.highscore:
-                self.highscore == self.score
+                self.highscore = self.score
+                self.highscore_label.config(text=f'High Score: {self.highscore}')
+                self.save_highscore()
 
             if hasattr(self, 'play_btn'):
                 self.play_btn.grid_forget()
             self.choose_type()
+
+    def load_highscore(self):
+        try:
+            with open('highest_score.txt','r') as file:
+                return int(file.read().strip())
+        except (FileNotFoundError, ValueError):
+            return 0
+    
+    def save_highscore(self):
+        with open('highest_score.txt', 'w') as file:
+            file.write((str(self.highscore)))
 
     def reset(self):
         self.score = 0
@@ -365,6 +370,10 @@ class LearnFrame(Frame):
         self.display.config(text='')
         self.user_answer.delete('1.0', END)
         self.choose_type()
+
+#-----------------------DECODE GUI FRAME-----------------------# 
+class DecodeFrame(Frame):
+    pass
 
 if __name__ == "__main__":
     morse_app = MorseApp()
