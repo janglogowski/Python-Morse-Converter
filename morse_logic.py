@@ -18,3 +18,6 @@ class MorseLogic:
             else:
                 encoded.append(letter)
         return encoded
+    
+    def decode_code(self, morse_code):
+        pass

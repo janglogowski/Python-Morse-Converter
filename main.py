@@ -1,7 +1,9 @@
+#---------------------------IMPORTS----------------------------# 
 from tkinter import *
 from config import *
 from frames import MainFrame, EncodeFrame, LearnFrame
 
+#--------------------------MORSE APP---------------------------# 
 class MorseApp(Tk):
     def __init__(self):
         super().__init__()
