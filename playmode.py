@@ -44,7 +44,7 @@ class PlayMode:
             self.random_letter = random.choice(list(self.alphabet))
             if self.random_letter != ' ':
                 break
-        random_code = self.morse_logic.generate_code(self.random_letter)
+        random_code = self.morse_logic.encode_text(self.random_letter)
         self.parent.display.config(text=random_code)
 
     def audio_to_letter(self):
@@ -64,7 +64,7 @@ class PlayMode:
         self.play_btn.grid(column=1, row=2, columnspan=3)
 
     def play_random_sound(self):
-        random_code = self.morse_logic.generate_code(self.random_letter)
+        random_code = self.morse_logic.encode_text(self.random_letter)
         random_code = " ".join(random_code)
         play_sound(random_code)
 
@@ -72,7 +72,7 @@ class PlayMode:
         user_answer = self.parent.user_answer.get('1.0', END).strip().lower()
 
         if self.type == 1:
-            correct_answer = self.morse_logic.generate_code(self.random_letter)[0]
+            correct_answer = self.morse_logic.encode_text(self.random_letter)[0]
             correct_answer = correct_answer.replace('•', '.').replace('−', '-')
         else:
             correct_answer = self.random_letter.lower()

@@ -10,10 +10,10 @@ def create_sound(input):
 
     audio = AudioSegment.silent(duration=0)
     for i in input:
-        if i == '•':
+        if i == '•' or i == '.':
             short_sound = AudioSegment.from_wav(SHORT_SOUND)
             audio += short_sound
-        elif i == '−':
+        elif i == '−' or i == '-':
             long_sound = AudioSegment.from_wav(LONG_SOUND)
             audio += long_sound
         elif i == ' ':

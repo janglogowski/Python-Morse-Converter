@@ -24,6 +24,5 @@ class MorseApp(Tk):
         frame.tkraise()
 
 if __name__ == "__main__":
-
     morse_app = MorseApp()
     morse_app.mainloop()

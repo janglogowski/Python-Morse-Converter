@@ -55,7 +55,11 @@ class MainFrame(Frame):
 class EncodeFrame(Frame):
     def __init__(self, parent):
         super().__init__(parent, bg=BACKGROUND)
-        self.input_text = 'Type in text to encode.'
+        self.input_text = ''
+        self.output_text = ''
+        self.updating_input = False
+        self.updating_output = False
+
         self.morse_logic = MorseLogic()
 
         for i in range(0,15):  
@@ -66,35 +70,8 @@ class EncodeFrame(Frame):
         self.create_encode_widgets()
         self.create_keyboard()
         self.monitor_user_input()
+        self.monitor_user_output()
         self.user_input.bind("<KeyPress>", self.on_key_press_event)
-
-    def create_keyboard(self):
-        alphabet_dict = self.morse_logic.alphabet
-
-        self.btn_dict = {}
-        self.letters = list(alphabet_dict.keys())
-        self.codes = list(alphabet_dict.values())
-
-        column_n,row_n = 1,1
-
-        for i in range(len(self.letters)):
-            alphabet_button = Button(self,
-                                     text=f'{self.letters[i].upper()}\n{self.codes[i]}',
-                                     font=(FONT_NAME,13),
-                                     width=5,
-                                     bg=BUTTON_BACKGROUND,
-                                     fg='white',
-                                     activebackground='#bcbcbc',
-                                     activeforeground='white',
-                                     command=lambda letter=self.letters[i]: self.btn_insert(letter))
-            alphabet_button.grid(column=column_n, row=row_n, sticky='nsew',pady=1,padx=1)
-            column_n += 1
-
-            if column_n == 14:
-                column_n = 1
-                row_n += 1
-            
-            self.btn_dict[self.letters[i].lower()] = alphabet_button
 
     def create_encode_widgets(self):
         play_button = Button(self,
@@ -139,20 +116,66 @@ class EncodeFrame(Frame):
                                 height=9)
         self.text_output.grid(column=1,row=7,columnspan=13)
 
+    def create_keyboard(self):
+        alphabet_dict = self.morse_logic.alphabet
+
+        self.btn_dict = {}
+        self.letters = list(alphabet_dict.keys())
+        self.codes = list(alphabet_dict.values())
+
+        column_n,row_n = 1,1
+
+        for i in range(len(self.letters)):
+            alphabet_button = Button(self,
+                                     text=f'{self.letters[i].upper()}\n{self.codes[i]}',
+                                     font=(FONT_NAME,13),
+                                     width=5,
+                                     bg=BUTTON_BACKGROUND,
+                                     fg='white',
+                                     activebackground='#bcbcbc',
+                                     activeforeground='white',
+                                     command=lambda letter=self.letters[i]: self.btn_insert(letter))
+            alphabet_button.grid(column=column_n, row=row_n, sticky='nsew',pady=1,padx=1)
+            column_n += 1
+
+            if column_n == 14:
+                column_n = 1
+                row_n += 1
+            
+            self.btn_dict[self.letters[i].lower()] = alphabet_button
+
     def monitor_user_input(self):
-        text_to_encode = self.user_input.get('1.0',END).strip()
+        if not self.updating_output and self.user_input.focus_get() == self.user_input:  
+            text_to_encode = self.user_input.get('1.0', END).strip()
 
-        if text_to_encode != self.input_text:
-            self.input_text = text_to_encode
-                
-            encoded_text = self.morse_logic.generate_code(text_to_encode)
-            self.encoded_output(encoded_text)
+            if text_to_encode != self.input_text:
+                self.input_text = text_to_encode
+                encoded_text = self.morse_logic.encode_text(text_to_encode)
 
-        self.after(100,self.monitor_user_input)
+                self.updating_input = True
+                self.text_output.delete(1.0, END)
+                self.text_output.insert(END, encoded_text)
+                self.updating_input = False
+
+        self.after(100, self.monitor_user_input)
+
+    def monitor_user_output(self):
+        if not self.updating_input and self.text_output.focus_get() == self.text_output:  
+            text_to_decode = self.text_output.get('1.0', END).strip()
+
+            if text_to_decode != self.output_text:
+                self.output_text = text_to_decode
+                decoded_text = self.morse_logic.decode_morse(text_to_decode)
+
+                self.updating_output = True
+                self.user_input.delete(1.0, END)
+                self.user_input.insert(END, decoded_text)
+                self.updating_output = False
+
+        self.after(100, self.monitor_user_output)
 
     def on_key_press_event(self, event):
         pressed_key = event.char.lower() 
-
         if pressed_key in self.btn_dict: 
             self.btn_dict[pressed_key].config(bg='#bcbcbc')
             self.after(100, lambda: self.btn_dict[pressed_key].config(bg=BUTTON_BACKGROUND))
@@ -163,6 +186,10 @@ class EncodeFrame(Frame):
     def encoded_output(self,u_input):
         self.text_output.delete(1.0, END)
         self.text_output.insert(END, u_input)
+
+    def decoded_output(self, decoded_text):
+        self.user_input.delete(1.0, END)
+        self.user_input.insert(END, decoded_text)
         
 #-----------------------SOUND SETTINGS-------------------------# 
     def play_audio(self):
