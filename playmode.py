@@ -1,8 +1,10 @@
+#---------------------------IMPORTS----------------------------# 
 import random
 from morse_logic import MorseLogic
 from audio import play_sound
 from tkinter import Button, END
 
+#---------------------------PLAYMODE---------------------------# 
 class PlayMode:
     def __init__(self, parent):
         self.morse_logic = MorseLogic()

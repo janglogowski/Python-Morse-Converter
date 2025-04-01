@@ -1,8 +1,10 @@
+#---------------------------IMPORTS----------------------------# 
 import os
 from pydub import AudioSegment
 from config import SHORT_SOUND, LONG_SOUND, EXPORT_FOLDER
 import pygame
 
+#-----------------------AUDIO SETTINGS-------------------------# 
 pygame.mixer.init()
 def create_sound(input):
     if not input:

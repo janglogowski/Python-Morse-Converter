@@ -10,11 +10,11 @@ Morse Code Converter is an interactive GUI application for encoding and decoding
 🔹 User-friendly interface – Clean design using Tkinter.  
 
 ## Application preview:
-<img src="README/main_img.png" width="650">
+<img src="assets/main_img.png" width="650">
 
-<img src="README/encode_decode_img.png" width="650">
+<img src="assets/encode_decode_img.png" width="650">
 
-<img src="README/learn_mode_img.png" width="650">
+<img src="assets/learn_mode_img.png" width="650">
 
 ## Installation
 1. Clone the repository  
